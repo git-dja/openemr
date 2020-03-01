@@ -8,26 +8,34 @@
 -- create ]todo[ dm feed for daily cash flow forecasting
 -- create ]todo[ dm feed for monthly ar assessment
 -- create ]todo[ dm feed for monthly rvu productivity
--- create ]todo[ dm feed for monthly metric summary trending
+-- created ]todo[ dm feed for monthly metric summary trending
 -- create ]todo[ dm feed for daily operational prioritization
 -- create ]todo[ dm feed for daily operational productivity
--- create ]todo[ quick list of frequent use tables
+-- created ]todo[ quick list of frequent use tables
 -----------------------------------------------------------
 
 -----------------------------------------------------------
 -- DM Feed for Metric Summary Trending
 -- created ]2020-02-02[ initial script
--- scale ]3pro=; 50pro=; 900pro=[ expected runtimes
+-- scale ]3pro=1s; 50pro=3s; 900pro=5s[ expected runtimes
 -- add ]todo[ void, payment, and ar activity
 -- add ]todo[ provider, category, and other groupings
 -----------------------------------------------------------
 DROP PROCEDURE IF EXISTS 'sp_dm_metricsummary'
 CREATE STORED PROCEDURE 'sp_dm_metricsummary'
+    @date-end       datetime    = null
+    @range-months   int         = null
 AS
 SELECT
-  t.id, t.date
-FROM 'transactions' as t
-WHERE t.date between @month_start and @month_end
+  l.date-yyyymm, l.amount-charge, l.amount-adjust-contract, l.amount-payment, l.amount-adjust-refund, l.amount-ar-open
+  
+FROM 'lilith' l
+    LEFT JOIN 'transactions'    as t    on l.id_transaction = t.id
+    LEFT JOIN 'payments'        as p    on l.id_payment = p.id
+    LEFT JOIN 'voids'           as v    on l.id_void = v.id
+    
+WHERE l.date-yyyymm <= ISNULL(@date-end, getdate())
+    AND l.date-yyyymm >= DATEADD(month,-1*ISNULL(@range-months,36),ISNULL(@date-end,getdate())
 
 
 -----------------------------------------------------------
